@@ -91,6 +91,11 @@ export class UserController {
     type: Number,
     required: false,
   })
+  @ApiQuery({
+    name: 'challengeId',
+    type: Number,
+    required: false,
+  })
   @Get(':id')
   async findOne(
     @Param('id', ParseIntPipe) id: number,
@@ -98,6 +103,8 @@ export class UserController {
     @Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset?: number,
     @Query('exerciseId', new DefaultValuePipe(0), ParseIntPipe)
     exerciseId?: number,
+    @Query('challengeId', new DefaultValuePipe(0), ParseIntPipe)
+    challengeId?: number,
   ) {
     const user = await this.userService.findOne(id);
 
@@ -110,7 +117,14 @@ export class UserController {
       exerciseId === 0 ? {} : { exerciseId },
     );
 
-    return { user, exerciseCompletions };
+    const challengeCompletions = await this.userService.getChallengeCompletions(
+      id,
+      limit,
+      offset,
+      challengeId === 0 ? {} : { challengeId },
+    );
+
+    return { user, exerciseCompletions, challengeCompletions };
   }
 
   @Patch(':id')

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { Challenge, ChallengeCompletion } from 'src/models/Challenge';
 import { Exercise, ExerciseCompletion } from 'src/models/Exercise';
 import { User, UserRole } from 'src/models/User';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -12,6 +13,8 @@ export class UserService {
     private userModel: typeof User,
     @InjectModel(ExerciseCompletion)
     private exerciseCompletionModel: typeof ExerciseCompletion,
+    @InjectModel(ChallengeCompletion)
+    private challengeCompletionModel: typeof ChallengeCompletion,
   ) {}
   async create(createUserDto: CreateUserDto) {
     return await this.userModel.create({ ...createUserDto });
@@ -23,14 +26,20 @@ export class UserService {
 
   async findOne(id: number) {
     return await this.userModel.findByPk(id, {
-      include: [{ model: Exercise, as: 'exercisesCreated' }],
+      include: [
+        { model: Exercise, as: 'exercisesCreated' },
+        { model: Challenge, as: 'challengesCreated' },
+      ],
     });
   }
 
   async findOneByQuery(query: { email?: string }) {
     return await this.userModel.findOne({
       where: query,
-      include: [{ model: Exercise, as: 'exercisesCreated' }],
+      include: [
+        { model: Exercise, as: 'exercisesCreated' },
+        { model: Challenge, as: 'challengesCreated' },
+      ],
     });
   }
 
@@ -53,6 +62,20 @@ export class UserService {
       limit,
       offset,
       include: [{ model: Exercise, as: 'exercise' }],
+    });
+  }
+
+  async getChallengeCompletions(
+    userId: number,
+    limit: number,
+    offset: number,
+    filter: { challengeId?: number },
+  ) {
+    return await this.challengeCompletionModel.findAll({
+      where: { userId, ...filter },
+      limit,
+      offset,
+      include: [{ model: Challenge, as: 'challenge' }],
     });
   }
 }

@@ -13,6 +13,7 @@ import {
   Unique,
   UpdatedAt,
 } from 'sequelize-typescript';
+import { Challenge, ChallengeCompletion } from './Challenge';
 import { Exercise, ExerciseCompletion } from './Exercise';
 
 export enum UserRole {
@@ -50,6 +51,9 @@ export class User extends Model {
   @HasMany(() => Exercise, 'creatorId')
   exercisesCreated: Exercise[];
 
+  @HasMany(() => Challenge, 'creatorId')
+  challengesCreated: Challenge[];
+
   @BelongsToMany(
     () => Exercise,
     () => ExerciseCompletion,
@@ -57,6 +61,14 @@ export class User extends Model {
     'exerciseId',
   )
   exerciseCompletions: Exercise[];
+
+  @BelongsToMany(
+    () => Challenge,
+    () => ChallengeCompletion,
+    'userId',
+    'challengeId',
+  )
+  challengeCompletions: Challenge[];
 
   @CreatedAt
   @Column

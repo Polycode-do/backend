@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { Challenge } from 'src/models/Challenge';
 import { Exercise, ExerciseCompletion } from 'src/models/Exercise';
 import { User } from 'src/models/User';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
@@ -28,7 +29,10 @@ export class ExerciseService {
 
   async findOne(id: number) {
     return await this.exerciseModel.findByPk(id, {
-      include: [{ model: User, as: 'creator' }],
+      include: [
+        { model: User, as: 'creator' },
+        { model: Challenge, as: 'challenge' },
+      ],
     });
   }
 

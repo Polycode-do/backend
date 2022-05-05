@@ -14,6 +14,7 @@ import {
   Table,
   UpdatedAt,
 } from 'sequelize-typescript';
+import { Challenge } from './Challenge';
 import { User } from './User';
 
 @Table
@@ -35,6 +36,15 @@ export class Exercise extends Model {
   @Length({ min: 3 })
   @Column
   subject: string;
+
+  @IsNumeric
+  @ForeignKey(() => Challenge)
+  @AllowNull(false)
+  @Column
+  challengeId: number;
+
+  @BelongsTo(() => Challenge, 'challengeId')
+  challenge: Challenge;
 
   @IsNumeric
   @ForeignKey(() => User)

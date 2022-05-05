@@ -11,21 +11,32 @@ import {
   Put,
   HttpCode,
   DefaultValuePipe,
+  BadRequestException,
 } from '@nestjs/common';
 import { ExerciseService } from './exercise.service';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { UpdateExerciseDto } from './dto/update-exercise.dto';
 import { ApiQuery } from '@nestjs/swagger';
+import { ChallengeService } from 'src/challenge/challenge.service';
 
 @Controller('exercise')
 export class ExerciseController {
-  constructor(private readonly exerciseService: ExerciseService) {}
+  constructor(
+    private readonly exerciseService: ExerciseService,
+    private readonly challengeService: ChallengeService,
+  ) {}
 
   @Put()
   @HttpCode(201)
   async create(@Body() createExerciseDto: CreateExerciseDto) {
     //TODO Implement authentication logic and replace this dummy with the real user id
     const userId = 1;
+
+    const challenge = await this.challengeService.findOne(
+      createExerciseDto.challengeId,
+    );
+
+    if (!challenge) throw new BadRequestException('Invalid Challenge');
 
     const createdExercise = await this.exerciseService.create(
       userId,
@@ -112,6 +123,12 @@ export class ExerciseController {
     const exercise = await this.exerciseService.findOne(id);
 
     if (!exercise) throw new NotFoundException('Exercise not found');
+
+    const challenge = await this.challengeService.findOne(
+      updateExerciseDto.challengeId,
+    );
+
+    if (!challenge) throw new BadRequestException('Invalid Challenge');
 
     const [count] = await this.exerciseService.update(id, updateExerciseDto);
 
