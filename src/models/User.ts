@@ -1,8 +1,10 @@
 import {
   AllowNull,
+  BelongsToMany,
   Column,
   CreatedAt,
   Default,
+  HasMany,
   Index,
   IsEmail,
   Length,
@@ -11,6 +13,7 @@ import {
   Unique,
   UpdatedAt,
 } from 'sequelize-typescript';
+import { Exercise, ExerciseCompletion } from './Exercise';
 
 export enum UserRole {
   ANY = 'any',
@@ -43,6 +46,17 @@ export class User extends Model {
   @Default(UserRole.USER)
   @Column
   role: UserRole;
+
+  @HasMany(() => Exercise, 'creatorId')
+  exercisesCreated: Exercise[];
+
+  @BelongsToMany(
+    () => Exercise,
+    () => ExerciseCompletion,
+    'userId',
+    'exerciseId',
+  )
+  exerciseCompletions: Exercise[];
 
   @CreatedAt
   @Column

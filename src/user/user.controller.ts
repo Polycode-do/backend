@@ -76,13 +76,41 @@ export class UserController {
     return { users };
   }
 
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'offset',
+    type: Number,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'exerciseId',
+    type: Number,
+    required: false,
+  })
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('limit', new DefaultValuePipe(100), ParseIntPipe) limit?: number,
+    @Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset?: number,
+    @Query('exerciseId', new DefaultValuePipe(0), ParseIntPipe)
+    exerciseId?: number,
+  ) {
     const user = await this.userService.findOne(id);
 
     if (!user) throw new NotFoundException('User not found');
 
-    return { user };
+    const exerciseCompletions = await this.userService.getExerciseCompletions(
+      id,
+      limit,
+      offset,
+      exerciseId === 0 ? {} : { exerciseId },
+    );
+
+    return { user, exerciseCompletions };
   }
 
   @Patch(':id')
