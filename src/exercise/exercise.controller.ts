@@ -11,6 +11,7 @@ import {
   Put,
   HttpCode,
   DefaultValuePipe,
+  Post,
   BadRequestException,
 } from '@nestjs/common';
 import { ExerciseService } from './exercise.service';
@@ -144,5 +145,54 @@ export class ExerciseController {
     const count = await this.exerciseService.remove(id);
 
     return { count };
+  }
+
+  @Post(':id/test')
+  async test(@Param('id', ParseIntPipe) id: number) {
+    //TODO Implement authentication logic and replace this dummy with the real user id
+    const userId = 1;
+
+    const exercise = await this.exerciseService.findOne(id);
+
+    if (!exercise) throw new NotFoundException('Exercise not found');
+
+    //TODO Implement code runner service that return a completion percentage to place in this variable
+    const exerciseCompletionAmount = 100;
+    let challengeCompletionAmount;
+
+    const [exerciseCompletion] = await this.exerciseService.upsertCompletion({
+      exerciseId: id,
+      userId,
+      completion: exerciseCompletionAmount,
+    });
+
+    if (exerciseCompletionAmount === 100 && !exerciseCompletion.succeeded) {
+      const [challengeCompletion] = await this.challengeService.getCompletions(
+        exercise.challengeId,
+        1,
+        0,
+        { userId },
+      );
+
+      challengeCompletionAmount = (challengeCompletion?.completion || 0) + 1;
+
+      await this.challengeService.upsertCompletion({
+        challengeId: exercise.challengeId,
+        userId,
+        completion: challengeCompletionAmount,
+      });
+
+      await this.exerciseService.upsertCompletion({
+        exerciseId: id,
+        userId,
+        completion: 100,
+        succeeded: true,
+      });
+    }
+
+    return {
+      exerciseCompletion: exerciseCompletionAmount,
+      challengeCompletion: challengeCompletionAmount,
+    };
   }
 }
