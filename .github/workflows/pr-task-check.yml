@@ -7,6 +7,9 @@ on:
       - reopened
       - edited
 
+env:
+  GITHUB_TOKEN: ${{ secrets.BOT_ACCESS_TOKEN }}
+
 jobs:
   task-check:
     name: Task Check
@@ -14,4 +17,4 @@ jobs:
     steps:
       - uses: kentaro-m/task-completed-checker-action@v0.1.0
         with:
-          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          repo-token: '${{ env.GITHUB_TOKEN }}'
