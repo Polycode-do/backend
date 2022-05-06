@@ -1,26 +1,81 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/sequelize';
+import { Challenge, ChallengeCompletion } from 'src/models/Challenge';
+import { Exercise, ExerciseCompletion } from 'src/models/Exercise';
+import { User, UserRole } from 'src/models/User';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  constructor(
+    @InjectModel(User)
+    private userModel: typeof User,
+    @InjectModel(ExerciseCompletion)
+    private exerciseCompletionModel: typeof ExerciseCompletion,
+    @InjectModel(ChallengeCompletion)
+    private challengeCompletionModel: typeof ChallengeCompletion,
+  ) {}
+  async create(createUserDto: CreateUserDto) {
+    return await this.userModel.create({ ...createUserDto });
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll(limit: number, offset: number, filter: { role?: UserRole }) {
+    return await this.userModel.findAll({ where: filter, limit, offset });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number) {
+    return await this.userModel.findByPk(id, {
+      include: [
+        { model: Exercise, as: 'exercisesCreated' },
+        { model: Challenge, as: 'challengesCreated' },
+      ],
+    });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async findOneByQuery(query: { email?: string }) {
+    return await this.userModel.findOne({
+      where: query,
+      include: [
+        { model: Exercise, as: 'exercisesCreated' },
+        { model: Challenge, as: 'challengesCreated' },
+      ],
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    return await this.userModel.update(updateUserDto, { where: { id } });
+  }
+
+  async remove(id: number) {
+    return await this.userModel.destroy({ where: { id } });
+  }
+
+  async getExerciseCompletions(
+    userId: number,
+    limit: number,
+    offset: number,
+    filter: { exerciseId?: number },
+  ) {
+    return await this.exerciseCompletionModel.findAll({
+      where: { userId, ...filter },
+      limit,
+      offset,
+      include: [{ model: Exercise, as: 'exercise' }],
+    });
+  }
+
+  async getChallengeCompletions(
+    userId: number,
+    limit: number,
+    offset: number,
+    filter: { challengeId?: number },
+  ) {
+    return await this.challengeCompletionModel.findAll({
+      where: { userId, ...filter },
+      limit,
+      offset,
+      include: [{ model: Challenge, as: 'challenge' }],
+    });
   }
 }
