@@ -6,8 +6,8 @@ on:
       - published
 
 env:
-  CHART_NAME: poc-polycode
-  KUBE_NAMESPACE: poc-polycode
+  CHART_NAME: backend
+  KUBE_NAMESPACE: backend
 
 jobs:
   deploy-to-prod:
