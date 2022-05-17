@@ -12,5 +12,6 @@ import { ChallengeCompletion } from 'src/models/Challenge';
   ],
   controllers: [UserController],
   providers: [UserService],
+  exports: [UserService],
 })
 export class UserModule {}

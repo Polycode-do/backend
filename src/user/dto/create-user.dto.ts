@@ -4,11 +4,11 @@ import { UserRole } from 'src/models/User';
 export class CreateUserDto {
   @IsString()
   @IsOptional()
-  firstName: string;
+  firstName?: string;
 
   @IsString()
   @IsOptional()
-  lastName: string;
+  lastName?: string;
 
   @IsEmail()
   email: string;
@@ -19,5 +19,5 @@ export class CreateUserDto {
 
   @IsEnum(UserRole)
   @IsOptional()
-  role: UserRole;
+  role?: UserRole;
 }

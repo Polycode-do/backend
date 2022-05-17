@@ -1,12 +1,16 @@
 import {
   AllowNull,
+  BelongsTo,
   BelongsToMany,
   Column,
   CreatedAt,
   Default,
+  ForeignKey,
   HasMany,
   Index,
+  IsDate,
   IsEmail,
+  IsNumeric,
   Length,
   Model,
   Table,
@@ -69,6 +73,36 @@ export class User extends Model {
     'challengeId',
   )
   challengeCompletions: Challenge[];
+
+  @CreatedAt
+  @Column
+  createdAt: Date;
+
+  @UpdatedAt
+  @Column
+  updatedAt: Date;
+}
+
+@Table
+export class UserSession extends Model {
+  @AllowNull(false)
+  @Unique
+  @Column
+  token: string;
+
+  @IsDate
+  @AllowNull(false)
+  @Column
+  expiresAt: Date;
+
+  @IsNumeric
+  @ForeignKey(() => User)
+  @AllowNull(false)
+  @Column
+  userId: number;
+
+  @BelongsTo(() => User)
+  user: User;
 
   @CreatedAt
   @Column

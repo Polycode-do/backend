@@ -13,14 +13,19 @@ import {
   DefaultValuePipe,
   Post,
   BadRequestException,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { ExerciseService } from './exercise.service';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { UpdateExerciseDto } from './dto/update-exercise.dto';
 import { ApiQuery } from '@nestjs/swagger';
 import { ChallengeService } from 'src/challenge/challenge.service';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { User } from 'src/models/User';
 
 @Controller('exercise')
+@UseGuards(JwtAuthGuard)
 export class ExerciseController {
   constructor(
     private readonly exerciseService: ExerciseService,
@@ -29,9 +34,8 @@ export class ExerciseController {
 
   @Put()
   @HttpCode(201)
-  async create(@Body() createExerciseDto: CreateExerciseDto) {
-    //TODO Implement authentication logic and replace this dummy with the real user id
-    const userId = 1;
+  async create(@Body() createExerciseDto: CreateExerciseDto, @Request() req) {
+    const user = req.user as User;
 
     const challenge = await this.challengeService.findOne(
       createExerciseDto.challengeId,
@@ -40,7 +44,7 @@ export class ExerciseController {
     if (!challenge) throw new BadRequestException('Invalid Challenge');
 
     const createdExercise = await this.exerciseService.create(
-      userId,
+      user.id,
       createExerciseDto,
     );
 
@@ -148,9 +152,8 @@ export class ExerciseController {
   }
 
   @Post(':id/test')
-  async test(@Param('id', ParseIntPipe) id: number) {
-    //TODO Implement authentication logic and replace this dummy with the real user id
-    const userId = 1;
+  async test(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    const user = req.user as User;
 
     const exercise = await this.exerciseService.findOne(id);
 
@@ -162,7 +165,7 @@ export class ExerciseController {
 
     const [exerciseCompletion] = await this.exerciseService.upsertCompletion({
       exerciseId: id,
-      userId,
+      userId: user.id,
       completion: exerciseCompletionAmount,
     });
 
@@ -171,20 +174,20 @@ export class ExerciseController {
         exercise.challengeId,
         1,
         0,
-        { userId },
+        { userId: user.id },
       );
 
       challengeCompletionAmount = (challengeCompletion?.completion || 0) + 1;
 
       await this.challengeService.upsertCompletion({
         challengeId: exercise.challengeId,
-        userId,
+        userId: user.id,
         completion: challengeCompletionAmount,
       });
 
       await this.exerciseService.upsertCompletion({
         exerciseId: id,
-        userId,
+        userId: user.id,
         completion: 100,
         succeeded: true,
       });
