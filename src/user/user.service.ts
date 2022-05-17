@@ -17,10 +17,14 @@ export class UserService {
     @InjectModel(ChallengeCompletion)
     private challengeCompletionModel: typeof ChallengeCompletion,
   ) {}
-  async create(createUserDto: CreateUserDto) {
+  async create(
+    createUserDto: CreateUserDto,
+    additionalData?: { verified?: boolean; emailToken?: string },
+  ) {
     return await this.userModel.create({
       ...createUserDto,
       password: await hash(createUserDto.password, 10),
+      ...additionalData,
     });
   }
 

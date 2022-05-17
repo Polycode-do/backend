@@ -1,8 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/sequelize';
 import { compare } from 'bcrypt';
 import { randomUUID } from 'crypto';
+import { MailService } from 'src/mail/mail.service';
 import { User, UserSession } from 'src/models/User';
 import { UserService } from 'src/user/user.service';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -12,6 +17,7 @@ export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
+    private mailService: MailService,
     @InjectModel(UserSession)
     private userSessionModel: typeof UserSession,
   ) {}
@@ -41,10 +47,8 @@ export class AuthService {
 
   async login(user: User) {
     const token = randomUUID();
-    const expiresAt = new Date();
-    expiresAt.setSeconds(
-      expiresAt.getSeconds() +
-        1000 * (parseInt(process.env.JWT_LIFETIME_SECONDS) || 60),
+    const expiresAt = new Date(
+      Date.now() + (parseInt(process.env.JWT_LIFETIME_SECONDS) || 60) * 1000,
     );
 
     this.userSessionModel.create({
@@ -64,7 +68,20 @@ export class AuthService {
   }
 
   async register(registerUserDto: RegisterUserDto) {
-    const createdUser = await this.userService.create(registerUserDto);
+    const token = randomUUID();
+
+    const user = await this.userService.findOneByQuery({
+      email: registerUserDto.email,
+    });
+
+    if (user) throw new BadRequestException('User already exists');
+
+    const createdUser = await this.userService.create(
+      { ...registerUserDto },
+      { emailToken: token },
+    );
+
+    this.mailService.sendUserConfirmation(createdUser, token);
 
     return await this.login(createdUser);
   }

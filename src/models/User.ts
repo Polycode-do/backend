@@ -52,6 +52,14 @@ export class User extends Model {
   @Column
   role: UserRole;
 
+  @Default(null)
+  @Column
+  emailToken: string;
+
+  @Default(false)
+  @Column
+  verified: boolean;
+
   @HasMany(() => Exercise, 'creatorId')
   exercisesCreated: Exercise[];
 
