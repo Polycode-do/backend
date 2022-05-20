@@ -7,8 +7,9 @@ export class MailService {
   constructor(private mailerService: MailerService) {}
 
   async sendUserConfirmation(user: User, token: string) {
-    const url = `example.com/auth/confirm?token=${token}`;
-    console.log(process.env.GMAIL_USER, process.env.GMAIL_PASS);
+    const url = `${
+      process.env.FRONTEND_URL || 'localhost:3000'
+    }/confirm-email/${token}`;
     await this.mailerService.sendMail({
       to: user.email,
       subject: 'Polycode email confirmation',

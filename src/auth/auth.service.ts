@@ -81,7 +81,7 @@ export class AuthService {
       { emailToken: token },
     );
 
-    this.mailService.sendUserConfirmation(createdUser, token);
+    await this.mailService.sendUserConfirmation(createdUser, token);
 
     return await this.login(createdUser);
   }

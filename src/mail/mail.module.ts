@@ -10,8 +10,8 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
       transport: {
         service: 'gmail',
         auth: {
-          user: process.env.GMAIL_USER,
-          pass: process.env.GMAIL_PASS,
+          user: process.env.GMAIL_USER || '',
+          pass: process.env.GMAIL_PASS || '',
         },
       },
       defaults: {
