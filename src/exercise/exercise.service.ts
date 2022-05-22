@@ -19,11 +19,30 @@ export class ExerciseService {
     return await this.exerciseModel.create({ creatorId, ...createExerciseDto });
   }
 
-  async findAll(limit: number, offset: number, filter: { creatorId?: number }) {
+  async findAll(
+    userId: number,
+    limit: number,
+    offset: number,
+    filter: { creatorId?: number },
+  ) {
     return await this.exerciseModel.findAll({
       where: filter,
       limit,
       offset,
+      include: [
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'firstname', 'email'],
+        },
+        { model: Challenge, as: 'challenge', attributes: ['id', 'name'] },
+        {
+          model: ExerciseCompletion,
+          as: 'completions',
+          attributes: ['id', 'completion'],
+          where: { userId },
+        },
+      ],
     });
   }
 
