@@ -4,6 +4,7 @@ import {
   BelongsToMany,
   Column,
   CreatedAt,
+  DataType,
   Default,
   ForeignKey,
   IsNumeric,
@@ -33,8 +34,8 @@ export class Exercise extends Model {
   baseCode: string;
 
   @AllowNull(false)
-  @Length({ min: 3 })
-  @Column
+  @Length({ min: 3, max: 10000 })
+  @Column(DataType.STRING(10000))
   subject: string;
 
   @IsNumeric
