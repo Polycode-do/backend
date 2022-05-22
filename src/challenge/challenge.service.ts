@@ -21,11 +21,29 @@ export class ChallengeService {
     });
   }
 
-  async findAll(limit: number, offset: number, filter: { creatorId?: number }) {
+  async findAll(
+    userId: number,
+    limit: number,
+    offset: number,
+    filter: { creatorId?: number },
+  ) {
     return await this.challengeModel.findAll({
       where: filter,
       limit,
       offset,
+      include: [
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'firstname', 'email'],
+        },
+        {
+          model: ChallengeCompletion,
+          as: 'completions',
+          attributes: ['id', 'completion'],
+          where: { userId },
+        },
+      ],
     });
   }
 

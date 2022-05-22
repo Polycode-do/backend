@@ -40,12 +40,16 @@ export class ChallengeController {
 
   @Get()
   async findAll(
+    @Request() req,
     @Query('limit', new DefaultValuePipe(100), ParseIntPipe) limit?: number,
     @Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset?: number,
     @Query('creatorId', new DefaultValuePipe(0), ParseIntPipe)
     creatorId?: number,
   ) {
+    const currentUser = req.user as User;
+
     const challenges = await this.challengeService.findAll(
+      currentUser.id,
       limit,
       offset,
       creatorId === 0 ? {} : { creatorId },
