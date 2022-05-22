@@ -25,7 +25,7 @@ export class ExerciseService {
     offset: number,
     filter: { creatorId?: number },
   ) {
-    return await this.exerciseModel.findAll({
+    const exercises = await this.exerciseModel.findAll({
       where: filter,
       limit,
       offset,
@@ -33,17 +33,26 @@ export class ExerciseService {
         {
           model: User,
           as: 'creator',
-          attributes: ['id', 'firstname', 'email'],
+          attributes: ['id', 'firstName', 'email'],
         },
         { model: Challenge, as: 'challenge', attributes: ['id', 'name'] },
-        {
-          model: ExerciseCompletion,
-          as: 'completions',
-          attributes: ['id', 'completion'],
-          where: { userId },
-        },
       ],
     });
+    return await Promise.all(
+      exercises.map(async (exercise) => {
+        return {
+          exercise,
+          completions: await this.getCompletions(
+            exercise.id,
+            undefined,
+            undefined,
+            {
+              userId,
+            },
+          ),
+        };
+      }),
+    );
   }
 
   async findOne(id: number) {

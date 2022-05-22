@@ -27,7 +27,7 @@ export class ChallengeService {
     offset: number,
     filter: { creatorId?: number },
   ) {
-    return await this.challengeModel.findAll({
+    const challenges = await this.challengeModel.findAll({
       where: filter,
       limit,
       offset,
@@ -35,16 +35,26 @@ export class ChallengeService {
         {
           model: User,
           as: 'creator',
-          attributes: ['id', 'firstname', 'email'],
-        },
-        {
-          model: ChallengeCompletion,
-          as: 'completions',
-          attributes: ['id', 'completion'],
-          where: { userId },
+          attributes: ['id', 'firstName', 'email'],
         },
       ],
     });
+
+    return await Promise.all(
+      challenges.map(async (challenge) => {
+        return {
+          challenge,
+          completions: await this.getCompletions(
+            challenge.id,
+            undefined,
+            undefined,
+            {
+              userId,
+            },
+          ),
+        };
+      }),
+    );
   }
 
   async findOne(id: number) {
