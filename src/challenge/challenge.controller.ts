@@ -11,23 +11,27 @@ import {
   DefaultValuePipe,
   ParseIntPipe,
   NotFoundException,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { User } from 'src/models/User';
 import { ChallengeService } from './challenge.service';
 import { CreateChallengeDto } from './dto/create-challenge.dto';
 import { UpdateChallengeDto } from './dto/update-challenge.dto';
 
 @Controller('challenge')
+@UseGuards(JwtAuthGuard)
 export class ChallengeController {
   constructor(private readonly challengeService: ChallengeService) {}
 
   @Put()
   @HttpCode(201)
-  async create(@Body() createChallengeDto: CreateChallengeDto) {
-    //TODO Implement authentication logic and replace this dummy with the real user id
-    const userId = 1;
+  async create(@Body() createChallengeDto: CreateChallengeDto, @Request() req) {
+    const user = req.user as User;
 
     const createdChallenge = await this.challengeService.create(
-      userId,
+      user.id,
       createChallengeDto,
     );
 

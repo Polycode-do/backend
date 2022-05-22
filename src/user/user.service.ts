@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { hash } from 'bcrypt';
 import { Challenge, ChallengeCompletion } from 'src/models/Challenge';
 import { Exercise, ExerciseCompletion } from 'src/models/Exercise';
 import { User, UserRole } from 'src/models/User';
@@ -16,8 +17,15 @@ export class UserService {
     @InjectModel(ChallengeCompletion)
     private challengeCompletionModel: typeof ChallengeCompletion,
   ) {}
-  async create(createUserDto: CreateUserDto) {
-    return await this.userModel.create({ ...createUserDto });
+  async create(
+    createUserDto: CreateUserDto,
+    additionalData?: { verified?: boolean; emailToken?: string },
+  ) {
+    return await this.userModel.create({
+      ...createUserDto,
+      password: await hash(createUserDto.password, 10),
+      ...additionalData,
+    });
   }
 
   async findAll(limit: number, offset: number, filter: { role?: UserRole }) {
@@ -33,13 +41,14 @@ export class UserService {
     });
   }
 
-  async findOneByQuery(query: { email?: string }) {
+  async findOneByQuery(query: { email?: string }, include?: string[]) {
     return await this.userModel.findOne({
       where: query,
       include: [
         { model: Exercise, as: 'exercisesCreated' },
         { model: Challenge, as: 'challengesCreated' },
       ],
+      attributes: { include },
     });
   }
 

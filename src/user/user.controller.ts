@@ -13,14 +13,19 @@ import {
   NotFoundException,
   DefaultValuePipe,
   ParseEnumPipe,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserRole } from 'src/models/User';
+import { User, UserRole } from 'src/models/User';
 import { ApiQuery } from '@nestjs/swagger';
+import { hash } from 'bcrypt';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 
 @Controller('user')
+@UseGuards(JwtAuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -33,7 +38,9 @@ export class UserController {
 
     if (user) throw new BadRequestException('User already exists');
 
-    const createdUser = await this.userService.create(createUserDto);
+    const createdUser = await this.userService.create(createUserDto, {
+      verified: true,
+    });
 
     return { userId: createdUser.id };
   }
@@ -127,6 +134,13 @@ export class UserController {
     return { user, exerciseCompletions, challengeCompletions };
   }
 
+  @Get('/me')
+  async getMe(@Request() req) {
+    const currentUser = req.user as User;
+
+    return { user: currentUser };
+  }
+
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -136,7 +150,12 @@ export class UserController {
 
     if (!user) throw new NotFoundException('User not found');
 
-    const [count] = await this.userService.update(id, updateUserDto);
+    const hashedPassword = await hash(updateUserDto.password, 10);
+
+    const [count] = await this.userService.update(id, {
+      ...updateUserDto,
+      password: hashedPassword,
+    });
 
     return { count };
   }

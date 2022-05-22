@@ -5,6 +5,9 @@ import { ChallengeModule } from './challenge/challenge.module';
 import { UserModule } from './user/user.module';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { ExerciseModule } from './exercise/exercise.module';
+import { AuthModule } from './auth/auth.module';
+import { MailModule } from './mail/mail.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -20,6 +23,9 @@ import { ExerciseModule } from './exercise/exercise.module';
       autoLoadModels: true,
     }),
     ExerciseModule,
+    AuthModule,
+    MailModule,
+    ConfigModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService],
