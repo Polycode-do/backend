@@ -23,6 +23,8 @@ import { ApiQuery } from '@nestjs/swagger';
 import { ChallengeService } from 'src/challenge/challenge.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { User } from 'src/models/User';
+import { TestExerciseDto } from './dto/test-exercise.dto';
+import axios from 'axios';
 
 @Controller('exercise')
 @UseGuards(JwtAuthGuard)
@@ -156,14 +158,26 @@ export class ExerciseController {
   }
 
   @Post(':id/test')
-  async test(@Param('id', ParseIntPipe) id: number, @Request() req) {
+  async test(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req,
+    @Body() testExerciseDto: TestExerciseDto,
+  ) {
     const user = req.user as User;
 
     const exercise = await this.exerciseService.findOne(id);
 
     if (!exercise) throw new NotFoundException('Exercise not found');
 
-    //TODO Implement code runner service that return a completion percentage to place in this variable
+    const runnerResult = await axios.post<{ stdout: string; stderr: string }>(
+      `${process.env.RUNNER_URL || 'http://localhost:3000'}/run`,
+      {
+        code: testExerciseDto.code,
+        language: testExerciseDto.language,
+      },
+    );
+
+    //TODO Implement testing code with runner
     const exerciseCompletionAmount = 100;
     let challengeCompletionAmount;
 
@@ -200,6 +214,7 @@ export class ExerciseController {
     return {
       exerciseCompletion: exerciseCompletionAmount,
       challengeCompletion: challengeCompletionAmount,
+      stdout: runnerResult.data.stdout,
     };
   }
 }
